@@ -1,0 +1,23 @@
+Book Schema
+
+fs
+_id
+uploadDate
+md5
+chunkSize
+length
+filename
+content_type
+metadata {
+ book_title
+ book_desc
+ edition
+ category
+ tag
+ isbn_10
+ isbn_13
+ paperback
+ publisher
+ author []
+ amazon_rank []
+}
