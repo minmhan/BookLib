@@ -15,5 +15,13 @@ def read_content(fname):
     return s
 
 def read_metadata(fname):
-    pdf = PdfFileReader(open(fname, 'rb'))
-    return pdf.getDocumentInfo()
+    try:
+        pdf = PdfFileReader(open(fname, 'rb'))
+        return pdf.getDocumentInfo()
+    except:
+        print('error on pdf reader')
+    
+
+a = '/media/minmhan/New Volume/EBook/Computer/Ruby/railo_3.pdf'
+dic = read_metadata(a)
+

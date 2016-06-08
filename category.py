@@ -67,7 +67,8 @@ class Category:
             'Security':{}
             },
         'Computer Science':{
-            'AI & Machine Learning':{}, 
+            'AI & Machine Learning':{'Computer Vision & Pattern Recognition':{}, 'Expert Systems':{},'Intelligence & Semantics':{},
+                                     'Machine Theory':{},'Natural Language Processing':{},'Neural Networks':{}}, 
             'Bioinformatics':{},
             'Computer Simulation':{}, 
             'Cybernetics':{},
@@ -83,6 +84,7 @@ class Category:
             'Data Processing':{},
             'Data Warehousing':{},
             'MySQL':{},
+            'Oracle':{},
             'Other Databases':{},
             'Relational Databases':{},
             'SQL':{}
@@ -90,7 +92,7 @@ class Category:
         'Digital Audio, Video & Photography':{},
         'Games & Strategy Guides':{},
         'Graphics & Design':{},
-        'Hardware & DIY':{},
+        'Hardware & DIY':{'3D Printing':{},'Design & Architecture':{},'Internet & Networking':{}, 'Mainframes & Minicomputers':{},'Maintenance, Repair & Upgrading':{}, 'Microprocessors &System Design':{},'Peripherals':{},'Personal Computers':{}, 'Robotics':{},'Single Board Computers':{}},
         'History & Culture':{},
         'Internet & Social Media':{},
         'Mobile Phones, Tablets & E-Readers':{
@@ -103,8 +105,8 @@ class Category:
             'Tablets':{}
             },
         'Networking & Cloud Computing':{
-            'Cloud Computing':{},
-            'Data in Enterprise':{},
+            'Cloud Computing':{'Cloud Computing':{},'Data in the Enterprise':{},'Home Networks':{},'Intranets & Extranets':{},'Network Administration':{},'Network Security':{},'Networks Protocols & APIs':{}, 'Wireless Networks':{}},
+            'Data in Enterprise':{'Client-Server Systems':{},'Electronic Data Interchange (EDI)':{},'SAP R3':{}},
             'Home Networks':{},
             'Internet, Groupware, & Telecommunications':{},
             'Intranets & Extranets':{},
@@ -124,7 +126,7 @@ class Category:
             },
         'Programming':{
             'APIs & Operating Environments':{}, 
-            'Algorithms':{}, 
+            'Algorithms':{'Data Structures':{},'Genetic':{},'Memory Management':{}}, 
             'Apple Programming':{}, 
             'Cross-platform Development':{}, 
             'Functional':{},
@@ -132,7 +134,7 @@ class Category:
             'Graphics & Multimedia':{}, 
             'Introductory & Beginning':{}, 
             'Languages & Tools':{},
-            'Microsoft Programming':{}, 
+            'Microsoft Programming':{'.NET':{},'C & C++ Windows Programming':{},'SQL Server':{},'VBA':{},'Visual Basic':{}}, 
             'Mobile Apps':{},
             'Parallel Programming':{},
             'Software Design, Testing & Engineering':{},
@@ -163,7 +165,8 @@ class Category:
             'Visual Basic':{},
             'XHTML':{},
             'XML':{},
-            'XSL':{}
+            'XSL':{},
+            'R':{}
             },
         'Security & Encryption':{
             'Cryptography':{},
@@ -174,10 +177,29 @@ class Category:
             'Security Certifications':{},
             'Viruses':{}   
             },
-        'Software':{},
+        'Software':{
+            'Accounting':{},
+            'Adobe':{},
+            'Databases':{},
+            'Design & Graphics':{},
+            'E-mail':{},
+            'Enterprise Applications':{},
+            'Mathematical & Statistical':{},
+            'Microsoft':{},
+            'Optical Character Recognition':{},
+            'Personal Finance':{},
+            'Presentation Software':{},
+            'Project Management Software':{},
+            'Quickbooks':{},
+            'Spreadsheets':{},
+            'Suites':{},
+            'Utilities':{},
+            'Voice Recognition':{},
+            'Word Processing':{}        
+        },
         'Web Development & Design':{
             'Content Management':{},
-            'Programming':{},
+            'Programming':{'ActiveX':{},'ASP.NET':{},'Cold Fusion':{},'CSS':{},'DHTML':{},'Java Server Pages':{},'JavaScript':{},'PHP':{},'Python':{},'Ruby':{},'XSL':{}},
             'User Experience & Usability':{},
             'User Generated Content':{},
             'Web Design':{},
@@ -202,15 +224,43 @@ class Category:
         'Experiments, Instruments & Measurement':{},
         'History & Philosophy':{},
         'Mathematics':{          
-            'Applied':{},
-            'Geometry & Topology':{},
+            'Applied':{
+            'Biomathematics':{},
+            'Differential Equations':{},
+            'Game Theory':{},
+            'Graph Theory':{},
+            'Linear Programming':{},
+            'Probability & Statistics':{},
+            'Statistics':{},
+            'Stochastic Modeling':{},
+            'Vector Analysis':{}            
+            },
+            'Geometry & Topology':{
+                'Algebraic Geometry':{},
+                'Analytic Geometry':{},
+                'Differential Geometry':{},
+                'Non-Euclidean Geometries':{},
+                'Topology':{}            
+            },
             'History':{},
             'Infinity':{},
             'Mathematical Analysis':{},
             'Matrices':{},
             'Number Systems':{},
             'Popular & Elementary':{},
-            'Pure Mathematics':{},
+            'Pure Mathematics':{
+                'Algebra':{},
+                'Calculus':{},
+                'Combinatorics':{},
+                'Discrete Mathematics':{},
+                'Finite Mathematics':{},
+                'Fractals':{},
+                'Functional Analysis':{},
+                'Group Theory':{},
+                'Logic':{},
+                'Number Theory':{},
+                'Set Theory':{}            
+            },
             'Reference':{},
             'Research':{},
             'Study & Teaching':{},
@@ -264,7 +314,29 @@ class Category:
     cookbooks_food_wine={}
     crafts_hobbies={}
     education_teaching={}
-    engineering_transportation={}
+    engineering_transportation={
+        'Automotive':{},
+        'Engineering':{
+            'Aerospace':{},
+            'Automotive':{},
+            'Bioengineering':{},
+            'Chemical':{},
+            'Civil & Environmental':{},
+            'Computer Modelling':{},
+            'Construction':{},
+            'Design':{},
+            'Electrical & Electronics':{'Circuits':{},'Digital Design':{},'Electric Machinery & Motors':{},'Electronics':{},'Fiber Optics':{},'Networks':{},'Superconductivity':{}},
+            'Energy Production & Extraction':{},
+            'Industrial, Manufacturing & Operational Systems':{},
+            'Marine Engineering':{},
+            'Materials & Material Science':{},
+            'Mechanical':{},
+            'Military Technology':{},
+            'Reference':{},
+            'Telecommunications & Sensors':{}
+        },
+        'Transportation':{}
+        }
     health_fitness_dieting={}
     history={'Africa':{},'Americas':{},'Arctic & Antarctica':{},'Asia':{},'Australia & Oceania':{},'Europe':{},'Middle East':{},'Russia':{},'United States':{},'World':{},'Ancient Civilizations':{},'Military':{},'Historical Study & Educational Resources':{}}
     humar_entertainment={}
@@ -321,7 +393,7 @@ class Category:
     db = None
     def __init__(self):
         client = MongoClient('mongodb://localhost:27017/')
-        self.db = client.booklib
+        self.db = client.ebooks
     
     def create(self):
         if self.db.categories.find({'_id':'Books'}).count() == 0:
@@ -348,6 +420,11 @@ class Category:
     def delete(self):
         pass
     
+    def isexist(self,category):
+        return self.db.categories.find({'_id':category}).count() > 0
+        
+    
     
 cat = Category()
 cat.create()
+print(cat.isexist('Electronics'))

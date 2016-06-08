@@ -11,43 +11,67 @@ import os
 import mimetypes
 import logging
 import pdfutil
+from category import Category
 
 client = MongoClient('mongodb://localhost:27017/')
-db = client.booklib
+db = client.ebooks
 fs = gridfs.GridFS(db)
-#fsb = gridfs.GridFSBucket(db)
-
-def insertbook(location, category):
-    #file_id = fs.put('hello world'.encode('utf-8'), test_metadata='testing', other_metadata='other')
+validfiles = ['.pdf','.docx','.doc','.txt','.chm','.awz3']
+cat = Category()
+    
+def insertbook(location):
     for path, subdirs, files in os.walk(location):
         for name in files:
-            #print(os.path.join(path, name))
+            ext = os.path.splitext(name)[1]
+            if not ext.lower() in validfiles:
+                continue
             file = open(os.path.join(path,name), 'rb')
             
             if fs.exists({'filename':name}):
                 continue
                 
-            meta = { 'book_title': name, 
-                    'book_desc' : '', 
+            filemetadata = get_file_metadata(os.path.join(path,name))
+
+            booktitle = ''
+            if filemetadata is not None and filemetadata['title'] is not None and filemetadata['title'] is not '':
+                booktitle = filemetadata['title']
+            else:
+                booktitle = name.split('.')[0].replace('_',' ')
+            
+                
+            # TODO: currently folder name is set to category
+            categoryname = path.split('/')[-1]
+            if not(cat.isexist(categoryname)):
+                categoryname = None
+            
+            meta = { 
+                    'title': booktitle, 
+                    'desc' : '',
+                    'images':[],
                     'edition':'',
-                    'category':category,
+                    'category':categoryname,
                     'language':'English',
-                    'tags':['programming','ruby'],
-                    'isbn_10':'',
-                    'isbn_13':'',
-                    'paperback':'',
+                    'tags':[],
+                    'isbn10':'',
+                    'isbn13':'',
+                    'length':None,
                     'publisher':'',
                     'author': [],
-                    'amazon_rank': [] }
+                    'amazonrank': [] 
+                    }
             
             gridin = fs.new_file(filename=name,
-                        content_type= get_content_type(name),
-                        file_content = '',
-                        file_metadata = get_file_metadata(os.path.join(path,name)),
-                        book_metadata = meta)
+                        contentType= get_content_type(name),
+                        content = None,
+                        fmd = filemetadata,
+                        bmd = meta)
             gridin.write(file.read())
             gridin.close()
+            print('.')
 
+
+def getbooktitle():
+    pass
   
     
 def insert_category(category, ancestors, parent):
@@ -67,11 +91,19 @@ def get_content_type(name):
 TODO: Implement for others
 """
 def get_file_metadata(file):
+    metadata = {'title':'', 'author':'','creator':'','producer':'','subject':''}
     content_type = get_content_type(file)
     if content_type == 'application/pdf':
-        return pdfutil.read_metadata(file)
+        metaInfo = pdfutil.read_metadata(file)
+        if metaInfo is not None:
+            metadata['title'] = metaInfo.title
+            metadata['author'] = metaInfo.author
+            metadata['creator'] = metaInfo.creator
+            metadata['producer'] = metaInfo.producer
+            metadata['subject'] = metaInfo.subject
+        return metadata
     else:
-        return {}
+        return None
     
     
 """
@@ -85,15 +117,14 @@ def get_file_content(file):
         return ''
 
 
-def writefile():
+def download(filename):
     location = '/media/minmhan/New Volume/EBook/Math/Misc/tmp/'
-    file = fs.find_one()
-    #print(file.read())
-    f = open('/media/minmhan/New Volume/EBook/Math/Misc/tmp/test.pdf', 'wb')
+    file = fs.find_one({'filename':filename})
+    f = open('/media/minmhan/New Volume/EBook/' + filename, 'wb')
     f.write(file.read())
     
-    fsb.download_to_stream_by_name('test2.pdf','/media/minmhan/New Volume/EBook/Math/Misc/tmp/')    
 
 
-location = '/media/minmhan/New Volume/EBook/Computer/Ruby'
-insertbook(location, 'programming,ruby')       
+location = '/media/minmhan/New Volume/EBook/Computer/ASP.NET'
+insertbook(location)       
+#download('21 Recipes for Mining Twitter.pdf')

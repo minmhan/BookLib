@@ -16,6 +16,7 @@ class crawler:
     def __del__self(self):
         pass
     
+    
     # Auxilliary function for getting an entry id and adding it if it's not present
     def getentryid(self,table,field,value,createnew=True):
         return None
