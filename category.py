@@ -53,7 +53,8 @@ class Category:
             'Search Engine Optimization':{},
             'SharePoint':{},
             'Social Media for Business':{},
-            'Software':{},
+            'Software':{                          
+            },
             'Web Marketing':{},
             'Window Server':{}        
             },
@@ -185,7 +186,17 @@ class Category:
             'E-mail':{},
             'Enterprise Applications':{},
             'Mathematical & Statistical':{},
-            'Microsoft':{},
+            'Microsoft':{
+                'Microsoft Access':{},
+                'Microsoft Sharepoint':{},
+                'Microsoft Windows':{},
+                'Microsoft Excel':{},
+                'Microsoft Office':{},
+                'Microsoft Outlook':{},
+                'Microsoft Powerpoint':{},
+                'Microsoft Project':{},
+                'Microsoft Word':{}            
+            },
             'Optical Character Recognition':{},
             'Personal Finance':{},
             'Presentation Software':{},
@@ -206,7 +217,10 @@ class Category:
             'Web Marketing':{},
             'Web Services':{},
             'Website Analytics':{}        
-            }
+            },
+        'Magazine':{},
+        'Journal':{}
+            
         }
     
     #Science and Math
@@ -303,7 +317,8 @@ class Category:
         'Reference':{},
         'Research':{},
         'Science for Kids':{},
-        'Technology':{}
+        'Technology':{},
+        'Magazine':{}
     }
     arts_photography={}
     biographies_memoirs={}
@@ -325,7 +340,7 @@ class Category:
             'Computer Modelling':{},
             'Construction':{},
             'Design':{},
-            'Electrical & Electronics':{'Circuits':{},'Digital Design':{},'Electric Machinery & Motors':{},'Electronics':{},'Fiber Optics':{},'Networks':{},'Superconductivity':{}},
+            'Electrical & Electronics':{'Circuits':{},'Digital Design':{},'Electric Machinery & Motors':{},'Electronics':{'Microelectronics':{},'Optoelectronics':{},'Semiconductors':{},'Sensors':{},'Solid State':{},'Transistors':{}},'Fiber Optics':{},'Networks':{},'Superconductivity':{}},
             'Energy Production & Extraction':{},
             'Industrial, Manufacturing & Operational Systems':{},
             'Marine Engineering':{},
@@ -350,11 +365,59 @@ class Category:
     romance={}
     
     sciencefiction_fantasy={}
-    selfhelp={}
+    selfhelp={
+        'Abuse':{},
+        'Anger Management':{},
+        'Anxieties & Relaxation':{},
+        'Art Therapy & Relaxation':{},
+        'Communication & Social Skills':{},
+        'Creativity':{},
+        'Death & Grief':{},
+        'Dreams':{},
+        'Eating Disorders':{},
+        'Emotions':{},
+        'Handwriting Analysis':{},
+        'Happiness':{},
+        'Hypnosis':{},
+        'Inner Child':{},
+        'Journal Writing':{},
+        'Memory Improvement':{},
+        'Mid-Life':{},
+        'Motivational':{},
+        'Neuro-Linguistic Programming':{},
+        'New Age':{},
+        'Personal Transformation':{},
+        'Relationships':{},
+        'Self-Esteem':{},
+        'Sex':{},
+        'Spirtual':{},
+        'Stress Management':{},
+        'Success':{},
+        'Time Management':{}
+    }
     sports_outdoors={}
     teen_youngadult={}
     test_preparation={}
-    travel={}
+    travel={
+        'Adventure Travel':{},
+        'Food, Lodging & Transportation':{},
+        'Pictorial':{},
+        'Reference':{},
+        'Speciality Travel':{},
+        'Travel Writing':{},
+        'Africa':{},
+        'Asia':{},
+        'Australia & South Pacific':{},
+        'Canada':{},
+        'Caribbean':{},
+        'Central America':{},
+        'Europe':{},
+        'Mexico':{},
+        'Middle East':{},
+        'Polar Regions':{},
+        'South America':{},
+        'United States':{}   
+    }
     
     books = {
         'Arts & Photography': arts_photography,

@@ -67,7 +67,7 @@ def insertbook(location):
                         bmd = meta)
             gridin.write(file.read())
             gridin.close()
-            print('.')
+            print(name)
 
 
 def getbooktitle():
@@ -122,9 +122,13 @@ def download(filename):
     file = fs.find_one({'filename':filename})
     f = open('/media/minmhan/New Volume/EBook/' + filename, 'wb')
     f.write(file.read())
+
+    
+    
+    
     
 
 
-location = '/media/minmhan/New Volume/EBook/Computer/ASP.NET'
+location = '/media/minmhan/New Volume/EBook/Computer/.NET'
 insertbook(location)       
 #download('21 Recipes for Mining Twitter.pdf')
