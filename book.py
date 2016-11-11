@@ -16,55 +16,55 @@ from category import Category
 client = MongoClient('mongodb://localhost:27017/')
 db = client.ebooks
 fs = gridfs.GridFS(db)
-validfiles = ['.pdf','.docx','.doc','.txt','.chm','.awz3']
+validfiles = ['.pdf', '.docx', '.doc', '.txt', '.chm', '.awz3']
 cat = Category()
-    
+
+
 def insertbook(location):
     for path, subdirs, files in os.walk(location):
         for name in files:
             ext = os.path.splitext(name)[1]
             if not ext.lower() in validfiles:
                 continue
-            file = open(os.path.join(path,name), 'rb')
-            
-            if fs.exists({'filename':name}):
+            file = open(os.path.join(path, name), 'rb')
+
+            if fs.exists({'filename': name}):
                 continue
-                
-            filemetadata = get_file_metadata(os.path.join(path,name))
+
+            filemetadata = get_file_metadata(os.path.join(path, name))
 
             booktitle = ''
             if filemetadata is not None and filemetadata['title'] is not None and filemetadata['title'] is not '':
                 booktitle = filemetadata['title']
             else:
-                booktitle = name.split('.')[0].replace('_',' ')
-            
-                
+                booktitle = name.split('.')[0].replace('_', ' ')
+
             # TODO: currently folder name is set to category
             categoryname = path.split('/')[-1]
-            if not(cat.isexist(categoryname)):
+            if not (cat.isexist(categoryname)):
                 categoryname = None
-            
-            meta = { 
-                    'title': booktitle, 
-                    'desc' : '',
-                    'images':[],
-                    'edition':'',
-                    'category':categoryname,
-                    'language':'English',
-                    'tags':[],
-                    'isbn10':'',
-                    'isbn13':'',
-                    'length':None,
-                    'publisher':'',
-                    'author': [],
-                    'amazonrank': [] 
-                    }
-            
+
+            meta = {
+                'title': booktitle,
+                'desc': '',
+                'images': [],
+                'edition': '',
+                'category': categoryname,
+                'language': 'English',
+                'tags': [],
+                'isbn10': '',
+                'isbn13': '',
+                'length': None,
+                'publisher': '',
+                'author': [],
+                'amazonrank': []
+            }
+
             gridin = fs.new_file(filename=name,
-                        contentType= get_content_type(name),
-                        content = None,
-                        fmd = filemetadata,
-                        bmd = meta)
+                                 contentType=get_content_type(name),
+                                 content=None,
+                                 fmd=filemetadata,
+                                 bmd=meta)
             gridin.write(file.read())
             gridin.close()
             print(name)
@@ -72,26 +72,31 @@ def insertbook(location):
 
 def getbooktitle():
     pass
-  
-    
+
+
 def insert_category(category, ancestors, parent):
     for c in category:
-        if(db.categories.exists({_id:c})):
+        if (db.categories.exists({_id: c})):
             continue
-        db.categories.insert({_id:c, ancestors: ancestors, parent:parent})
+        db.categories.insert({_id: c, ancestors: ancestors, parent: parent})
 
-                        
+
 """
 Guess content type by file extension.
 """
+
+
 def get_content_type(name):
     return mimetypes.guess_type(name)[0]
-    
+
+
 """
 TODO: Implement for others
 """
+
+
 def get_file_metadata(file):
-    metadata = {'title':'', 'author':'','creator':'','producer':'','subject':''}
+    metadata = {'title': '', 'author': '', 'creator': '', 'producer': '', 'subject': ''}
     content_type = get_content_type(file)
     if content_type == 'application/pdf':
         metaInfo = pdfutil.read_metadata(file)
@@ -104,11 +109,13 @@ def get_file_metadata(file):
         return metadata
     else:
         return None
-    
-    
+
+
 """
 TODO: Implement for others
 """
+
+
 def get_file_content(file):
     content_type = get_content_type(file)
     if content_type == 'application/pdf':
@@ -118,17 +125,23 @@ def get_file_content(file):
 
 
 def download(filename):
-    location = '/media/minmhan/New Volume/EBook/Math/Misc/tmp/'
-    file = fs.find_one({'filename':filename})
-    f = open('/media/minmhan/New Volume/EBook/' + filename, 'wb')
+    file = fs.find_one({'filename': filename})
+    print('downloading file', file)
+    f = open('/home/minmhan/Downloads/tmp/' + filename, 'wb')
     f.write(file.read())
-
     
-    
+def download_category(category):
+    files = fs.find({'bmd.category':category})
+    for file in files:
+        print('downloading..', file.filename)
+        f = open('/home/minmhan/Downloads/Python/' + file.filename, 'wb')
+        f.write(file.read())
     
     
 
 
 location = '/media/minmhan/New Volume/EBook/Computer/.NET'
-insertbook(location)       
-#download('21 Recipes for Mining Twitter.pdf')
+# insertbook(location)
+#download('Data Mining Algorithms.pdf')
+# download('21 Recipes for Mining Twitter.pdf')
+download_category('Python')

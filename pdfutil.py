@@ -22,6 +22,6 @@ def read_metadata(fname):
         print('error on pdf reader')
     
 
-a = '/media/minmhan/New Volume/EBook/Computer/Ruby/railo_3.pdf'
-dic = read_metadata(a)
+#a = '/media/minmhan/New Volume/EBook/Computer/Ruby/railo_3.pdf'
+#dic = read_metadata(a)
 

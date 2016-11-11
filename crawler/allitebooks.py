@@ -8,7 +8,8 @@ Created on Thu Jul 14 23:32:27 2016
 import urllib
 from urllib import request
 from bs4 import BeautifulSoup
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urlparse, urljoin, quote_plus
+import urllib
 import sqlite3
 import re
 
@@ -106,7 +107,7 @@ class crawler:
             self.con.execute("insert into linkwords(linkid,wordid) values (%d,%d)" % (linkid,wordid))
 
     
-    def crawl(self, pages, depth=4):
+    def crawl(self, pages, depth=2):
         for i in range(depth):
             newpages=set()
             for page in pages:
@@ -116,7 +117,9 @@ class crawler:
                     print('could not open %s' % page)
                     continue
                 soup = BeautifulSoup(c.read())
-                self.addtoindex(page,soup)
+                self.download(soup, page)
+                return
+                #self.addtoindex(page,soup)
                 
                 links=soup('a')
                 for link in links:
@@ -124,13 +127,39 @@ class crawler:
                         url= urljoin(page,link['href'])
                         if url.find("'")!=-1: continue
                         url=url.split('#')[0] #remove location portion
-                        if url[0:4]=='http' and not self.isindexed(url):
-                            newpages.add(url)
+                        #if url[0:4]=='http' and not self.isindexed(url):
+                        #    newpages.add(url)
                         #linkText=self.gettextonly(link)
                         #self.addlinkref(page,url,linkText)
+                        
                             
                 self.dbcommit()    
             pages = newpages
+            
+    def download(self, soup, page):
+        links = soup.find_all(href=re.compile('.pdf$', re.IGNORECASE))
+        for link in links:
+            if('href' in dict(link.attrs)):
+                url = urljoin(page, link['href'])
+                if url.find("'") !=-1: 
+                    continue
+                if url[0:4] == 'http':
+                    self.download_file(url)
+                    
+    def download_file(self, url):
+        print('downloading %s' % url.replace(' ', '%20'))
+        try:
+            response = request.urlopen(url.replace(' ','%20'))
+        except:
+            print('could not open %s' % url.replace(' ', '%20'))
+            return
+        
+        file_name = url.split('/')[-1]
+        file = open(file_name, 'wb')
+        file.write(response.read())
+        file.close()
+        print('download completed')
+                
 
     def isbookprofile(soup):
         divid = 'content_single'
@@ -139,17 +168,21 @@ class crawler:
         
     # Create the database tables
     def createindextables(self):
-        #self.con.execute('create table book(title,author,isbn,year,pages,language,filesize,fileformat,category,image,desc')
-        self.con.execute('create table urllist(url)')
-        self.con.execute('create table wordlist(word)')
-        self.con.execute('create table wordlocation(urlid,wordid,location)')
-        self.con.execute('create table link(fromid INTEGER,toid INTEGER)')
-        self.con.execute('create table linkwords(wordid,linkid)')
-        self.con.execute('create index wordidx on wordlist(word)')
+        self.con.execute("""create table book(title VARCHAR(255),
+                                              author VARCHAR(255),
+                                              isbn VARCHAR(20),
+                                              year INTEGER,
+                                              pages INTEGER,
+                                              filesize FLOAT,
+                                              fileformat VARCHAR(10),
+                                              category VARCHAR(255),
+                                              desc BLOB,
+                                              url_id INTEGER,
+                                              created_at DATETIME)""")
+        self.con.execute('create table file(file BLOB, ext VARCHAR(10), book_id INTEGER)')
+        self.con.execute('create table image(image BLOB, ext VARCHAR(10), book_id INTEGER)')
+        self.con.execute('create table urllist(url VARCHAR(255), status VARCHAR(10), created_at DATETIME)')
         self.con.execute('create index urlidx on urllist(url)')
-        self.con.execute('create index wordurlindex on wordlocation(wordid)')
-        self.con.execute('create index urltoidx on link(toid)')
-        self.con.execute('create index urlfromidx on link(fromid)')
         self.dbcommit()
 
         
@@ -157,9 +190,11 @@ class crawler:
 pagelist=['http://www.allitebooks.com']
 c = crawler('allitebooks.db')
 #c.createindextables()
-c.crawl(pagelist)
+#c.crawl(pagelist)
 #print([row for row in c.con.execute('select rowid from wordlocation where wordid=1')])
 
+#c.download_file('http://file.allitebooks.com/20151012/Parallelism%20in%20Matrix%20Computations.pdf')
+c.crawl(['http://www.allitebooks.com/parallelism-in-matrix-computations/'],1)
 
 
 
