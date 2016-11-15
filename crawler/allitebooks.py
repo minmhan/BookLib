@@ -130,25 +130,27 @@ class crawler:
             
     def is_ascii(self, s):
         return all(ord(c) < 128 for c in s)
-            
+    
+        
     def download(self, soup, page):
         book = self.extract_content(soup)          
+        
+        print ('file size: ', book.filesize)
+        if book.filesize > 100: #TODO: update fail status.
+            return
             
         # download file
         link = soup.find(href=re.compile('.pdf$', re.IGNORECASE))
         url = urljoin(page, link['href'])
+        
+        book.url = url
         #print('downloading ', url)
-        #file,filename = self.download_file(url)
-        #book.file = file
-        #book.filename = filename
+        book.file, book.filename = self.download_file(url)
 
         # download image file        
         imgLink = soup.find('img', class_='attachment-post-thumbnail')
         url = urljoin(page,imgLink['src'])
-        print('downloading image ', url)
-        image, imgfilename = self.download_file(url)
-        book.image = image
-        book.imagefilename = imgfilename
+        book.image, book.imagefilename = self.download_file(url)
         
         self.addbook(book)
         
@@ -162,11 +164,22 @@ class crawler:
             if c.string == 'Isbn:':
                 book.isbn = c.next_sibling.get_text()
             if c.string == 'Year:':
-                book.year = c.next_sibling.get_text()
+                try:
+                    book.year = int(c.next_sibling.get_text())
+                except:
+                    print('could not parse year')
             if c.string == 'Pages:':
-                book.pages = c.next_sibling.get_text()
+                try:
+                    book.pages = int(c.next_sibling.get_text())
+                except:
+                    print('could not parse pages')
             if c.string == 'File size:':
-                book.filesize = c.next_sibling.get_text()
+                try:
+                    filesize = c.next_sibling.get_text()
+                    filesize = filesize.replace('MB','')
+                    book.filesize = float(filesize)
+                except:
+                    print('could not parse file size')
             if c.string == 'File format:':
                 book.fileformat = c.next_sibling.get_text()
             if c.string == 'Category:':
@@ -181,40 +194,44 @@ class crawler:
     def download_file(self, url):
         print('downloading %s' % url.replace(' ', '%20'))
         try:
-            response = request.urlopen(url.replace(' ','%20'))
+            req = request.urlopen(url.replace(' ','%20'))
         except:
             print('could not open %s' % url.replace(' ', '%20'))
             return
         
         filename = url.split('/')[-1]
-        #file = open(file_name, 'wb')
-        #file.write(response.read())
-        #file.close()
+        data = req.read()
+        req.close()
+        
         print('download completed')
-        return (response.read(),filename)
+        return (data,filename)
         
         
     def addbook(self, book):
-        #print('adding ',book.file)
+        print('adding ....', book.filename)
+        
         cur = self.con.cursor()
-        #query = "insert into file(file,filename) values (%s,%s)"
-        #args = (book.file, book.filename)
-        #cur.execute(query, args)
-        #fileid = cur.lastrowid       
+        query = "insert into file(file,filename) values (%s,%s)"
+        args = (book.file, book.filename)
+        cur.execute(query, args)
+        fileid = cur.lastrowid       
+        print('file added: ', fileid)
         
         print('adding ', book.imagefilename)
         query = "insert into image(image,filename) values (%s,%s)"
         args = (book.image, book.imagefilename)
         cur.execute(query, args)
         imageid=cur.lastrowid      
-        print('added ', imageid)
+        print('image added ', imageid)
         
-#        self.con.cursor().execute("""insert into book(file_id, image_id, title,author,isbn,year,pages,filesize,
-#                                                 fileformat,category,description,url,created_at)
-#                                                 values (%d,%d,%s,%s,%s,%d,%d,%f,%s,%s,%s,%s,%s)""" 
-#                                                 %(fileid, imageid, book.title,book.author,book.isbn,book.year,
-#                                                   book.pages,book.filesize,book.fileformat,
-#                                                   book.category,book.desc,book.url,datetime.datetime.now()))
+        query = """insert into book(file_id, image_id, title,author,isbn,year,pages,filesize,
+                                                 fileformat,category,description,url,created_at)
+                                                 values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
+        args = (fileid, imageid, book.title,book.author,book.isbn,book.year,
+                                                   book.pages,book.filesize,book.fileformat,
+                                                   book.category,book.desc,book.url,datetime.datetime.now())
+        cur.execute(query, args)
+        
                                                  
     def get(self, title):
         cursor = self.con.cursor()
@@ -241,14 +258,14 @@ class crawler:
                                               filesize DECIMAL,
                                               fileformat VARCHAR(10),
                                               category VARCHAR(255),
-                                              description BLOB,
+                                              description TEXT,
                                               url VARCHAR(255),
                                               created_at DATETIME,
                                               primary key(id))""")
         self.con.cursor().execute("""create table if not exists file(id INTEGER AUTO_INCREMENT, 
-                file BLOB, filename VARCHAR(100), primary key(id))""")
+                file LONGBLOB, filename VARCHAR(100), primary key(id))""")
         self.con.cursor().execute("""create table if not exists image(id INTEGER AUTO_INCREMENT, 
-                image BLOB, filename VARCHAR(100), primary key(id))""")
+                image MEDIUMBLOB, filename VARCHAR(100), primary key(id))""")
         self.con.cursor().execute("""create table if not exists urllist(id INTEGER AUTO_INCREMENT, 
                 url VARCHAR(255), status VARCHAR(10), created_at DATETIME, primary key(id))""")
         #self.con.execute('create index urlidx on urllist(url)')
