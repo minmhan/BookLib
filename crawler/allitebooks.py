@@ -7,63 +7,40 @@ Created on Thu Jul 14 23:32:27 2016
 
 from urllib import request
 from bs4 import BeautifulSoup
-from urllib.parse import urlparse, urljoin, quote_plus
+from urllib.parse import urljoin
 import re
 import datetime
 import MySQLdb
+from contextlib import closing
 
-
+#TODO: exception handling
 url = 'http://www.allitebooks.com'
-
+MAX_FILE_SIZE = 100 # max allow 100MB download
 class crawler:
     def __init__(self, dbname):
-        self.con=MySQLdb.connect("localhost", "minmhan","P@ssw0rd", "allitebooks")
+        self.con=MySQLdb.connect("localhost", "minmhan","P@ssw0rd", "allitebooks", charset='utf8')
         
-    
     def __del__self(self):
         self.con.close()
         
     def dbcommit(self):
         self.con.commit()
     
-    
-    # Auxilliary function for getting an entry id and adding it if it's not present
-    def getentryid(self,table,field,value,createnew=True):
-        cursor = self.con.cursor()
-        cur=cursor.execute("select id from %s where %s='%s'" % (table,field,value))
-        if cur==0:
-            print('inserting: ', value)
-            cursor.execute("insert into %s (%s,created_at) values ('%s', '%s')" % (table,field,value,datetime.datetime.now()))
-            print("inserted :", table, field, value)
-            return cursor.lastrowid
-        else:
-            return cur
-    
     # Index an individual page
     def addtoindex(self,url,soup):
         if self.isindexed(url):
             return
-        print('Indexing ', url)
+        else:
+            with closing(self.con.cursor()) as cur:
+                cur.execute("insert into urllist (url,created_at) values ('%s', '%s')" % (url,datetime.datetime.now()))
+                cur.close()
         
-        # Get the individual words
-        #text=self.gettextonly(soup)
-        #words=self.separatewords(text)
-        
-        # Get the URL id
-        urlid=self.getentryid('urllist','url',url)
-        
-        # Link each word to this url
-        #for i in range(len(words)):
-        #    word=words[i]
-        #    if word in ignorewords:
-        #        continue
-        #    wordid=self.getentryid('wordlist','word',word)
-        #    self.con.execute("insert into wordlocation(urlid,wordid,location) values (%d,%d,%d)" % (urlid,wordid,i))
         
     def updatestatus(self, url):
-        cur = self.con.cursor()
-        cur.execute("update urllist set status='success' where url='%s'" % url)
+        with closing(self.con.cursor()) as cur:
+            cur.execute("update urllist set status='success' where url='%s'" % url)
     
+
     # Extract the text from an HTML page (no tags)
     def gettextonly(self,soup):
         v=soup.string
@@ -85,13 +62,12 @@ class crawler:
     
     # Return true if this url is already indexed
     def isindexed(self,url):
-        cursor = self.con.cursor()
-        print('checking url: ', url)
-        u=cursor.execute("select id from urllist where url='%s'" % url)
-        if u!=0:
-            return True
-        else:
-            return False
+        with closing(self.con.cursor()) as cur:
+            u=cur.execute("select id from urllist where url='%s'" % url)
+            if u!=0:
+                return True
+            else:
+                return False
     
     def crawl(self, pages, depth=2):
         for i in range(depth):
@@ -116,8 +92,6 @@ class crawler:
                         #url=url.replace(u"\u2018","'").replace(u"\u2019","'")
                         if url[0:4]=='http' and self.is_ascii(url) and not self.isindexed(url):
                             newpages.add(url)
-                        #linkText=self.gettextonly(link)
-                        #self.addlinkref(page,url,linkText)
             
                 # Download if single profile page
                 if soup.find('body', class_='single-post') != None:
@@ -134,17 +108,15 @@ class crawler:
         
     def download(self, soup, page):
         book = self.extract_content(soup)          
-        
-        print ('file size: ', book.filesize)
-        if book.filesize > 100: #TODO: update fail status.
+        if book.filesize > 100: #100MB, TODO: update fail status.
             return
             
-        # download file
+        # download pdf file
+        # TODO: other format
         link = soup.find(href=re.compile('.pdf$', re.IGNORECASE))
         url = urljoin(page, link['href'])
         
         book.url = url
-        #print('downloading ', url)
         book.file, book.filename = self.download_file(url)
 
         # download image file        
@@ -189,8 +161,7 @@ class crawler:
             
         return book
         
-                    
-                    
+                         
     def download_file(self, url):
         print('downloading %s' % url.replace(' ', '%20'))
         try:
@@ -202,66 +173,66 @@ class crawler:
         filename = url.split('/')[-1]
         data = req.read()
         req.close()
-        
-        print('download completed')
         return (data,filename)
         
         
-    def addbook(self, book):
-        print('adding ....', book.filename)
-        
-        cur = self.con.cursor()
-        query = "insert into file(file,filename) values (%s,%s)"
-        args = (book.file, book.filename)
-        cur.execute(query, args)
-        fileid = cur.lastrowid       
-        print('file added: ', fileid)
-        
-        print('adding ', book.imagefilename)
-        query = "insert into image(image,filename) values (%s,%s)"
-        args = (book.image, book.imagefilename)
-        cur.execute(query, args)
-        imageid=cur.lastrowid      
-        print('image added ', imageid)
-        
-        query = """insert into book(file_id, image_id, title,author,isbn,year,pages,filesize,
-                                                 fileformat,category,description,url,created_at)
-                                                 values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
-        args = (fileid, imageid, book.title,book.author,book.isbn,book.year,
-                                                   book.pages,book.filesize,book.fileformat,
-                                                   book.category,book.desc,book.url,datetime.datetime.now())
-        cur.execute(query, args)
-        
-                                                 
-    def get(self, title):
-        cursor = self.con.cursor()
-        cursor.execute("select file_id from book where title='%s'" % (title))
-        if cursor.lastrowid != 0:
-            cursor.execute("select file from file where id=%d" % cursor.lastrowid)
-            f = cursor.fetchone()
-            file = open(f.filename, 'wb')
-            file.write(f.file)
-            file.close()
+    def addbook(self, book):  
+        with closing(self.con.cursor()) as cur:
+            # insert file
+            query = "insert into file(file,filename) values (%s,%s)"
+            args = (book.file, book.filename)
+            cur.execute(query, args)
+            fileid = cur.lastrowid
+            # insert image file
+            query = "insert into image(image,filename) values (%s,%s)"
+            args = (book.image, book.imagefilename)
+            cur.execute(query, args)
+            imageid=cur.lastrowid
+            # insert book
+            query = """insert into book(file_id, image_id, title,author,isbn,year,pages,filesize,
+                            fileformat,category,description,url,created_at)
+                            values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
+            args = (fileid, imageid, book.title,book.author,book.isbn,book.year,
+                        book.pages,book.filesize,book.fileformat,
+                        book.category,book.desc,book.url,datetime.datetime.now())
+            cur.execute(query, args)
 
-              
+
+    # download file from database
+    def getbook(self, title):
+        with closing(self.con.cursor()) as cur:
+            cur.execute("select file_id from book where title='%s'" % (title))
+            if cur.lastrowid != 0:
+                self.getfile('book',cur.lastrowid)
+            else:
+                print("%s not found." % title)
+
+            
+    # download image from database
+    def getimage(self, title):
+        with closing(self.con.cursor()) as cur:
+            cur.execute("select image_id from image where title='%s'" % (title))
+            if cur.lastrowid != 0:
+                self.getfile('image', cur.lastrowid)
+            else:
+                print("%s not found." % title)
+    
+    
+    def getfile(self,table, id):
+        with closing(self.con.cursor()) as cur:
+            cur.execute("select %s,filename from image where id=%d" % (table,id))
+            f = cur.fetchone()
+            with open(f[1], 'wb') as file:
+                file.write(f[0])
+            
         
     # Create the database tables
     def createindextables(self):
         self.con.cursor().execute("""create table if not exists book(id INTEGER AUTO_INCREMENT,
-                                              file_id INTEGER,
-                                              image_id INTEGER,
-                                              title VARCHAR(255),
-                                              author VARCHAR(255),
-                                              isbn VARCHAR(20),
-                                              year INTEGER,
-                                              pages INTEGER,
-                                              filesize DECIMAL,
-                                              fileformat VARCHAR(10),
-                                              category VARCHAR(255),
-                                              description TEXT,
-                                              url VARCHAR(255),
-                                              created_at DATETIME,
-                                              primary key(id))""")
+                file_id INTEGER,image_id INTEGER,title VARCHAR(255), author VARCHAR(255),
+                isbn VARCHAR(20),year INTEGER,pages INTEGER, filesize DECIMAL(10,2),
+                fileformat VARCHAR(10),category VARCHAR(255),description TEXT,url VARCHAR(255),
+                created_at DATETIME,primary key(id))""")
         self.con.cursor().execute("""create table if not exists file(id INTEGER AUTO_INCREMENT, 
                 file LONGBLOB, filename VARCHAR(100), primary key(id))""")
         self.con.cursor().execute("""create table if not exists image(id INTEGER AUTO_INCREMENT, 
@@ -269,7 +240,6 @@ class crawler:
         self.con.cursor().execute("""create table if not exists urllist(id INTEGER AUTO_INCREMENT, 
                 url VARCHAR(255), status VARCHAR(10), created_at DATETIME, primary key(id))""")
         #self.con.execute('create index urlidx on urllist(url)')
-        #self.dbcommit()
 
         
 class Book:
